@@ -1,10 +1,11 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents.EventHandling
+﻿using IntegrationEvents;
+
+namespace Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents.EventHandling
 {
     using BuildingBlocks.EventBus.Abstractions;
     using BuildingBlocks.EventBus.Events;
     using global::Catalog.API.IntegrationEvents;
     using Infrastructure;
-    using IntegrationEvents.Events;
     using Microsoft.Extensions.Logging;
     using Serilog.Context;
     using System.Collections.Generic;

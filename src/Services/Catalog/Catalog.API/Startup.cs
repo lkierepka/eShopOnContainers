@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
@@ -19,18 +18,20 @@ using Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF;
 using Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF.Services;
 using Microsoft.eShopOnContainers.Services.Catalog.API.Infrastructure;
 using Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents.EventHandling;
-using Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using RabbitMQ.Client;
 using System;
 using System.Data.Common;
 using System.IO;
 using System.Reflection;
+using EventBusMassTransit;
+using IntegrationEvents;
+using MassTransit;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Microsoft.eShopOnContainers.Services.Catalog.API
 {
@@ -45,6 +46,13 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("catalog-api"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddMassTransitInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             services.AddAppInsight(Configuration)
                 .AddGrpc().Services
                 .AddCustomMVC(Configuration)
@@ -114,7 +122,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                 });
             });
 
-            ConfigureEventBus(app);
+            // ConfigureEventBus(app);
         }
 
         protected virtual void ConfigureEventBus(IApplicationBuilder app)
@@ -276,55 +284,75 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
 
             services.AddTransient<ICatalogIntegrationEventService, CatalogIntegrationEventService>();
 
-            if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
-            {
-                services.AddSingleton<IServiceBusPersisterConnection>(sp =>
-                {
-                    var settings = sp.GetRequiredService<IOptions<CatalogSettings>>().Value;
-                    var serviceBusConnection = new ServiceBusConnectionStringBuilder(settings.EventBusConnection);
-                    var subscriptionClientName = configuration["SubscriptionClientName"];
-
-                    return new DefaultServiceBusPersisterConnection(serviceBusConnection, subscriptionClientName);
-                });
-            }
-            else
-            {
-                services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
-                {
-                    var settings = sp.GetRequiredService<IOptions<CatalogSettings>>().Value;
-                    var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
-
-                    var factory = new ConnectionFactory()
-                    {
-                        HostName = configuration["EventBusConnection"],
-                        DispatchConsumersAsync = true
-                    };
-
-                    if (!string.IsNullOrEmpty(configuration["EventBusUserName"]))
-                    {
-                        factory.UserName = configuration["EventBusUserName"];
-                    }
-
-                    if (!string.IsNullOrEmpty(configuration["EventBusPassword"]))
-                    {
-                        factory.Password = configuration["EventBusPassword"];
-                    }
-
-                    var retryCount = 5;
-                    if (!string.IsNullOrEmpty(configuration["EventBusRetryCount"]))
-                    {
-                        retryCount = int.Parse(configuration["EventBusRetryCount"]);
-                    }
-
-                    return new DefaultRabbitMQPersistentConnection(factory, logger, retryCount);
-                });
-            }
+            // if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
+            // {
+            //     services.AddSingleton<IServiceBusPersisterConnection>(sp =>
+            //     {
+            //         var settings = sp.GetRequiredService<IOptions<CatalogSettings>>().Value;
+            //         var serviceBusConnection = new ServiceBusConnectionStringBuilder(settings.EventBusConnection);
+            //         var subscriptionClientName = configuration["SubscriptionClientName"];
+            //
+            //         return new DefaultServiceBusPersisterConnection(serviceBusConnection, subscriptionClientName);
+            //     });
+            // }
+            // else
+            // {
+            //     services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
+            //     {
+            //         var settings = sp.GetRequiredService<IOptions<CatalogSettings>>().Value;
+            //         var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
+            //
+            //         var factory = new ConnectionFactory()
+            //         {
+            //             HostName = configuration["EventBusConnection"],
+            //             DispatchConsumersAsync = true
+            //         };
+            //
+            //         if (!string.IsNullOrEmpty(configuration["EventBusUserName"]))
+            //         {
+            //             factory.UserName = configuration["EventBusUserName"];
+            //         }
+            //
+            //         if (!string.IsNullOrEmpty(configuration["EventBusPassword"]))
+            //         {
+            //             factory.Password = configuration["EventBusPassword"];
+            //         }
+            //
+            //         var retryCount = 5;
+            //         if (!string.IsNullOrEmpty(configuration["EventBusRetryCount"]))
+            //         {
+            //             retryCount = int.Parse(configuration["EventBusRetryCount"]);
+            //         }
+            //
+            //         return new DefaultRabbitMQPersistentConnection(factory, logger, retryCount);
+            //     });
+            // }
 
             return services;
         }
 
         public static IServiceCollection AddEventBus(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddMassTransit(p =>
+            {
+                p.AddConsumer<MassTransitConsumer<OrderStatusChangedToAwaitingValidationIntegrationEvent, OrderStatusChangedToAwaitingValidationIntegrationEventHandler>>();
+                p.AddConsumer<MassTransitConsumer<OrderStatusChangedToPaidIntegrationEvent, OrderStatusChangedToPaidIntegrationEventHandler>>();
+                p.UsingRabbitMq((context, configurator) =>
+                {
+                    configurator.Host("rabbitmq", hostConfigurator =>
+                    {
+                        hostConfigurator.Username("guest");
+                        hostConfigurator.Password("guest");
+                    });
+                    configurator.ConfigureEndpoints(context);
+                });
+            });
+            services.AddMassTransitHostedService();
+            services.AddTransient<IEventBus, BuildingBlocks.EventBusMassTransit.EventBusMassTransit>();
+
+            services.AddTransient<OrderStatusChangedToAwaitingValidationIntegrationEventHandler>();
+            services.AddTransient<OrderStatusChangedToPaidIntegrationEventHandler>();
+            return services;
             if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
             {
                 services.AddSingleton<IEventBus, EventBusServiceBus>(sp =>
@@ -360,8 +388,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
             }
 
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
-            services.AddTransient<OrderStatusChangedToAwaitingValidationIntegrationEventHandler>();
-            services.AddTransient<OrderStatusChangedToPaidIntegrationEventHandler>();
 
             return services;
         }

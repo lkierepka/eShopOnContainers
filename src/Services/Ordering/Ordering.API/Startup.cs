@@ -1,10 +1,16 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API
+﻿using EventBusMassTransit;
+using MassTransit;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Ordering.API.Application.IntegrationEvents.EventHandling;
+
+namespace Microsoft.eShopOnContainers.Services.Ordering.API
 {
     using AspNetCore.Http;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using global::Ordering.API.Application.IntegrationEvents;
-    using global::Ordering.API.Application.IntegrationEvents.Events;
+    using global::IntegrationEvents;
     using global::Ordering.API.Infrastructure.Filters;
     using GrpcOrdering;
     using HealthChecks.UI.Client;
@@ -15,7 +21,6 @@
     using Microsoft.AspNetCore.Diagnostics.HealthChecks;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.ServiceBus;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus;
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
@@ -30,7 +35,6 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using Ordering.Infrastructure;
-    using RabbitMQ.Client;
     using System;
     using System.Collections.Generic;
     using System.Data.Common;
@@ -48,7 +52,14 @@
         public IConfiguration Configuration { get; }
 
         public virtual IServiceProvider ConfigureServices(IServiceCollection services)
-        {
+        {            
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ordering-api"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddMassTransitInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             services
                 .AddGrpc(options =>
                 {
@@ -130,7 +141,7 @@
                 });
             });
 
-            ConfigureEventBus(app);
+            // ConfigureEventBus(app);
         }
 
 
@@ -292,49 +303,49 @@
 
             services.AddTransient<IOrderingIntegrationEventService, OrderingIntegrationEventService>();
 
-            if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
-            {
-                services.AddSingleton<IServiceBusPersisterConnection>(sp =>
-                {
-                    var serviceBusConnectionString = configuration["EventBusConnection"];
-                    var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString);
-                    var subscriptionClientName = configuration["SubscriptionClientName"];
-
-                    return new DefaultServiceBusPersisterConnection(serviceBusConnection, subscriptionClientName);
-                });
-            }
-            else
-            {
-                services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
-                {
-                    var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
-
-
-                    var factory = new ConnectionFactory()
-                    {
-                        HostName = configuration["EventBusConnection"],
-                        DispatchConsumersAsync = true
-                    };
-
-                    if (!string.IsNullOrEmpty(configuration["EventBusUserName"]))
-                    {
-                        factory.UserName = configuration["EventBusUserName"];
-                    }
-
-                    if (!string.IsNullOrEmpty(configuration["EventBusPassword"]))
-                    {
-                        factory.Password = configuration["EventBusPassword"];
-                    }
-
-                    var retryCount = 5;
-                    if (!string.IsNullOrEmpty(configuration["EventBusRetryCount"]))
-                    {
-                        retryCount = int.Parse(configuration["EventBusRetryCount"]);
-                    }
-
-                    return new DefaultRabbitMQPersistentConnection(factory, logger, retryCount);
-                });
-            }
+            // if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
+            // {
+            //     services.AddSingleton<IServiceBusPersisterConnection>(sp =>
+            //     {
+            //         var serviceBusConnectionString = configuration["EventBusConnection"];
+            //         var serviceBusConnection = new ServiceBusConnectionStringBuilder(serviceBusConnectionString);
+            //         var subscriptionClientName = configuration["SubscriptionClientName"];
+            //
+            //         return new DefaultServiceBusPersisterConnection(serviceBusConnection, subscriptionClientName);
+            //     });
+            // }
+            // else
+            // {
+            //     services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
+            //     {
+            //         var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
+            //
+            //
+            //         var factory = new ConnectionFactory()
+            //         {
+            //             HostName = configuration["EventBusConnection"],
+            //             DispatchConsumersAsync = true
+            //         };
+            //
+            //         if (!string.IsNullOrEmpty(configuration["EventBusUserName"]))
+            //         {
+            //             factory.UserName = configuration["EventBusUserName"];
+            //         }
+            //
+            //         if (!string.IsNullOrEmpty(configuration["EventBusPassword"]))
+            //         {
+            //             factory.Password = configuration["EventBusPassword"];
+            //         }
+            //
+            //         var retryCount = 5;
+            //         if (!string.IsNullOrEmpty(configuration["EventBusRetryCount"]))
+            //         {
+            //             retryCount = int.Parse(configuration["EventBusRetryCount"]);
+            //         }
+            //
+            //         return new DefaultRabbitMQPersistentConnection(factory, logger, retryCount);
+            //     });
+            // }
 
             return services;
         }
@@ -366,6 +377,27 @@
 
         public static IServiceCollection AddEventBus(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddMassTransit(p =>
+            {
+                p.AddConsumer<MassTransitConsumer<UserCheckoutAcceptedIntegrationEvent, UserCheckoutAcceptedIntegrationEventHandler>>();
+                p.AddConsumer<MassTransitConsumer<GracePeriodConfirmedIntegrationEvent, GracePeriodConfirmedIntegrationEventHandler>>();
+                p.AddConsumer<MassTransitConsumer<OrderStockConfirmedIntegrationEvent, OrderStockConfirmedIntegrationEventHandler>>();
+                p.AddConsumer<MassTransitConsumer<OrderStockRejectedIntegrationEvent, OrderStockRejectedIntegrationEventHandler>>();
+                p.AddConsumer<MassTransitConsumer<OrderPaymentFailedIntegrationEvent, OrderPaymentFailedIntegrationEventHandler>>();
+                p.AddConsumer<MassTransitConsumer<OrderPaymentSucceededIntegrationEvent, OrderPaymentSucceededIntegrationEventHandler>>();
+                p.UsingRabbitMq((context, configurator) =>
+                {
+                    configurator.Host("rabbitmq", hostConfigurator =>
+                    {
+                        hostConfigurator.Username("guest");
+                        hostConfigurator.Password("guest");
+                    });
+                    configurator.ConfigureEndpoints(context);
+                });
+            });
+            services.AddMassTransitHostedService();
+            services.AddTransient<IEventBus, BuildingBlocks.EventBusMassTransit.EventBusMassTransit>();
+            return services;
             if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
             {
                 services.AddSingleton<IEventBus, EventBusServiceBus>(sp =>

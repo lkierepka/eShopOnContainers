@@ -22,6 +22,8 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
 {
@@ -37,6 +39,12 @@ namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("mobile-aggregator"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             services.AddHealthChecks()
                 .AddCheck("self", () => HealthCheckResult.Healthy())
                 .AddUrlGroup(new Uri(Configuration["CatalogUrlHC"]), name: "catalogapi-check", tags: new string[] { "catalogapi" })

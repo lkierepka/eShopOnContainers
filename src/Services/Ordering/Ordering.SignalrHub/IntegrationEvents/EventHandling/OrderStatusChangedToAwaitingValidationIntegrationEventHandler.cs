@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Serilog.Context;
 using System;
 using System.Threading.Tasks;
+using IntegrationEvents;
 
 namespace Ordering.SignalrHub.IntegrationEvents
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
 
-namespace Webhooks.API.IntegrationEvents
+namespace IntegrationEvents
 {
     public record OrderStatusChangedToShippedIntegrationEvent : IntegrationEvent
     {

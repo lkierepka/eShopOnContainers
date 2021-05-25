@@ -1,10 +1,11 @@
-﻿namespace Payment.API.IntegrationEvents.EventHandling
+﻿using IntegrationEvents;
+
+namespace Payment.API.IntegrationEvents.EventHandling
 {
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Payment.API.IntegrationEvents.Events;
     using Serilog.Context;
     using System.Threading.Tasks;
 

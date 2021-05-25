@@ -5,7 +5,6 @@ using Microsoft.eShopOnContainers.Services.Identity.API;
 using Microsoft.eShopOnContainers.Services.Identity.API.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;

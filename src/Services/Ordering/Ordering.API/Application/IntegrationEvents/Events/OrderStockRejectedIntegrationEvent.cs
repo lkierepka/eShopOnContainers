@@ -1,4 +1,4 @@
-﻿namespace Ordering.API.Application.IntegrationEvents.Events
+﻿namespace IntegrationEvents
 {
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
     using System.Collections.Generic;

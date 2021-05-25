@@ -3,7 +3,7 @@ using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
 using Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.BuyerAggregate;
 using Microsoft.Extensions.Logging;
 using Ordering.API.Application.IntegrationEvents;
-using Ordering.API.Application.IntegrationEvents.Events;
+using IntegrationEvents;
 using Ordering.Domain.Events;
 using System;
 using System.Threading;

@@ -5,7 +5,6 @@ using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
 using Ordering.API.Application.Behaviors;
 using Ordering.API.Application.DomainEventHandlers.OrderStartedEvent;
 using Ordering.API.Application.Validations;
-using System.Linq;
 using System.Reflection;
 
 namespace Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.AutofacModules

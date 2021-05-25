@@ -2,7 +2,7 @@
 using Microsoft.eShopOnContainers.Services.Basket.API.Model;
 using System;
 
-namespace Basket.API.IntegrationEvents.Events
+namespace IntegrationEvents
 {
     public record UserCheckoutAcceptedIntegrationEvent : IntegrationEvent
     {

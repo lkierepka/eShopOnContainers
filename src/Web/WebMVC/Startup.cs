@@ -18,6 +18,8 @@ using StackExchange.Redis;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using WebMVC.Infrastructure;
 
 namespace Microsoft.eShopOnContainers.WebMVC
@@ -34,6 +36,12 @@ namespace Microsoft.eShopOnContainers.WebMVC
         // This method gets called by the runtime. Use this method to add services to the IoC container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("web-mvc"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             services.AddControllersWithViews()
                 .Services
                 .AddAppInsight(Configuration)

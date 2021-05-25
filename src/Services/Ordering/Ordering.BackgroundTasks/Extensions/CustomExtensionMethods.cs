@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using MassTransit;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
@@ -47,6 +48,21 @@ namespace Ordering.BackgroundTasks.Extensions
 
         public static IServiceCollection AddEventBus(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddMassTransit(p =>
+            {
+                p.UsingRabbitMq((context, configurator) =>
+                {
+                    configurator.Host("rabbitmq", hostConfigurator =>
+                    {
+                        hostConfigurator.Username("guest");
+                        hostConfigurator.Password("guest");
+                    });
+                    configurator.ConfigureEndpoints(context);
+                });
+            });
+            services.AddMassTransitHostedService();
+            services.AddTransient<IEventBus, Microsoft.eShopOnContainers.BuildingBlocks.EventBusMassTransit.EventBusMassTransit>();
+            return services;
             var subscriptionClientName = configuration["SubscriptionClientName"];
 
             if (configuration.GetValue<bool>("AzureServiceBusEnabled"))

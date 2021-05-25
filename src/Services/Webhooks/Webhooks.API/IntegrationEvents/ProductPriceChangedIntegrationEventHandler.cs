@@ -1,5 +1,6 @@
 ﻿using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
 using System.Threading.Tasks;
+using IntegrationEvents;
 
 namespace Webhooks.API.IntegrationEvents
 {

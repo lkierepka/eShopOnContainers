@@ -1,6 +1,6 @@
 ﻿using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
 
-namespace Ordering.SignalrHub.IntegrationEvents.Events
+namespace IntegrationEvents
 {
     public record OrderStatusChangedToShippedIntegrationEvent : IntegrationEvent
     {

@@ -21,6 +21,8 @@ using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System;
 using System.Reflection;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API
 {
@@ -36,6 +38,12 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("identity-api"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             RegisterAppInsights(services);
 
             // Add framework services.

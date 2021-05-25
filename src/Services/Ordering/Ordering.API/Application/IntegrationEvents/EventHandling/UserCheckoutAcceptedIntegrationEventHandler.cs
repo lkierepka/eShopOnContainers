@@ -3,7 +3,7 @@ using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Extensions;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
 using Microsoft.Extensions.Logging;
-using Ordering.API.Application.IntegrationEvents.Events;
+using IntegrationEvents;
 using Serilog.Context;
 using System;
 using System.Threading.Tasks;

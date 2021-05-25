@@ -1,7 +1,7 @@
 ﻿using Autofac;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
-using Ordering.SignalrHub.IntegrationEvents;
 using System.Reflection;
+using IntegrationEvents;
 
 namespace Ordering.SignalrHub.AutofacModules
 {

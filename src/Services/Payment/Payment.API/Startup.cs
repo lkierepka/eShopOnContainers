@@ -13,9 +13,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Payment.API.IntegrationEvents.EventHandling;
-using Payment.API.IntegrationEvents.Events;
 using RabbitMQ.Client;
 using System;
+using EventBusMassTransit;
+using IntegrationEvents;
+using MassTransit;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Payment.API
 {
@@ -31,6 +35,13 @@ namespace Payment.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("payment-api"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddMassTransitInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             services.AddCustomHealthCheck(Configuration);
             services.Configure<PaymentSettings>(Configuration);
 
@@ -97,7 +108,7 @@ namespace Payment.API
                 app.UsePathBase(pathBase);
             }
 
-            ConfigureEventBus(app);
+            // ConfigureEventBus(app);
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>
@@ -122,6 +133,24 @@ namespace Payment.API
 
         private void RegisterEventBus(IServiceCollection services)
         {
+            services.AddMassTransit(p =>
+            {
+                p.AddConsumer<MassTransitConsumer<OrderStatusChangedToStockConfirmedIntegrationEvent, OrderStatusChangedToStockConfirmedIntegrationEventHandler>>();
+                p.UsingRabbitMq((context, configurator) =>
+                {
+                    configurator.Host("rabbitmq", hostConfigurator =>
+                    {
+                        hostConfigurator.Username("guest");
+                        hostConfigurator.Password("guest");
+                    });
+                    configurator.ConfigureEndpoints(context);
+                });
+            });
+            services.AddMassTransitHostedService();
+            services.AddTransient<IEventBus, Microsoft.eShopOnContainers.BuildingBlocks.EventBusMassTransit.EventBusMassTransit>();
+            
+            services.AddTransient<OrderStatusChangedToStockConfirmedIntegrationEventHandler>();
+            return;
             if (Configuration.GetValue<bool>("AzureServiceBusEnabled"))
             {
                 services.AddSingleton<IEventBus, EventBusServiceBus>(sp =>
@@ -155,7 +184,6 @@ namespace Payment.API
                 });
             }
 
-            services.AddTransient<OrderStatusChangedToStockConfirmedIntegrationEventHandler>();
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
         }
 

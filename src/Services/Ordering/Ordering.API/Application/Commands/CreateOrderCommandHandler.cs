@@ -2,7 +2,7 @@
 {
     using Domain.AggregatesModel.OrderAggregate;
     using global::Ordering.API.Application.IntegrationEvents;
-    using global::Ordering.API.Application.IntegrationEvents.Events;
+    using global::IntegrationEvents;
     using MediatR;
     using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
     using Microsoft.eShopOnContainers.Services.Ordering.Infrastructure.Idempotency;

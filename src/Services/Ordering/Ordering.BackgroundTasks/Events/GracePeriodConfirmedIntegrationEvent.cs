@@ -1,4 +1,4 @@
-﻿namespace Ordering.BackgroundTasks.Events
+﻿namespace IntegrationEvents
 {
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
 

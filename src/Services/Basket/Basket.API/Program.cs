@@ -1,6 +1,5 @@
 ﻿using Basket.API.Infrastructure.Middlewares;
 using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.eShopOnContainers.Services.Basket.API;

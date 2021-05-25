@@ -1,5 +1,4 @@
-﻿using Basket.API.IntegrationEvents.Events;
-using Basket.API.Model;
+﻿using Basket.API.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
@@ -11,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using IntegrationEvents;
 using Xunit;
 using IBasketIdentityService = Microsoft.eShopOnContainers.Services.Basket.API.Services.IIdentityService;
 

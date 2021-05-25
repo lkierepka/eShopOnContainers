@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
+using IntegrationEvents;
 using Webhooks.API.Model;
 using Webhooks.API.Services;
 

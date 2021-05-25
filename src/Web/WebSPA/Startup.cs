@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System;
 using System.IO;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using WebSPA.Infrastructure;
 
 namespace eShopConContainers.WebSPA
@@ -36,6 +38,12 @@ namespace eShopConContainers.WebSPA
         // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("web-spa"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             RegisterAppInsights(services);
 
             services.AddHealthChecks()

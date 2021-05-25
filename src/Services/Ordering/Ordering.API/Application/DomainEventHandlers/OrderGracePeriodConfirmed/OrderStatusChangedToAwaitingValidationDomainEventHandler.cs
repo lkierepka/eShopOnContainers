@@ -1,4 +1,6 @@
-﻿namespace Ordering.API.Application.DomainEventHandlers.OrderGracePeriodConfirmed
+﻿using IntegrationEvents;
+
+namespace Ordering.API.Application.DomainEventHandlers.OrderGracePeriodConfirmed
 {
     using Domain.Events;
     using MediatR;
@@ -6,7 +8,6 @@
     using Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
     using Microsoft.Extensions.Logging;
     using Ordering.API.Application.IntegrationEvents;
-    using Ordering.API.Application.IntegrationEvents.Events;
     using System;
     using System.Linq;
     using System.Threading;

@@ -25,6 +25,11 @@ using System.Data.Common;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Threading;
+using EventBusMassTransit;
+using IntegrationEvents;
+using MassTransit;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Webhooks.API.Infrastructure;
 using Webhooks.API.IntegrationEvents;
 using Webhooks.API.Services;
@@ -43,6 +48,14 @@ namespace Webhooks.API
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("webhooks-api"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddMassTransitInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
+            
             services
                 .AddAppInsight(Configuration)
                 .AddCustomRouting(Configuration)
@@ -106,7 +119,7 @@ namespace Webhooks.API
                   c.OAuthAppName("WebHooks Service Swagger UI");
               });
 
-            ConfigureEventBus(app);
+            // ConfigureEventBus(app);
         }
 
         protected virtual void ConfigureAuth(IApplicationBuilder app)
@@ -207,6 +220,28 @@ namespace Webhooks.API
         }
         public static IServiceCollection AddEventBus(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddMassTransit(p =>
+            {
+                p.AddConsumer<MassTransitConsumer<ProductPriceChangedIntegrationEvent, ProductPriceChangedIntegrationEventHandler>>();
+                p.AddConsumer<MassTransitConsumer<OrderStatusChangedToShippedIntegrationEvent, OrderStatusChangedToShippedIntegrationEventHandler>>();
+                p.AddConsumer<MassTransitConsumer<OrderStatusChangedToPaidIntegrationEvent, OrderStatusChangedToPaidIntegrationEventHandler>>();
+                p.UsingRabbitMq((context, configurator) =>
+                {
+                    configurator.Host("rabbitmq", hostConfigurator =>
+                    {
+                        hostConfigurator.Username("guest");
+                        hostConfigurator.Password("guest");
+                    });
+                    configurator.ConfigureEndpoints(context);
+                });
+            });
+            services.AddMassTransitHostedService();
+            services.AddTransient<IEventBus, Microsoft.eShopOnContainers.BuildingBlocks.EventBusMassTransit.EventBusMassTransit>();
+
+            services.AddTransient<ProductPriceChangedIntegrationEventHandler>();
+            services.AddTransient<OrderStatusChangedToShippedIntegrationEventHandler>();
+            services.AddTransient<OrderStatusChangedToPaidIntegrationEventHandler>();
+            return services;
             if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
             {
                 services.AddSingleton<IEventBus, EventBusServiceBus>(sp =>
@@ -242,9 +277,6 @@ namespace Webhooks.API
             }
 
             services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
-            services.AddTransient<ProductPriceChangedIntegrationEventHandler>();
-            services.AddTransient<OrderStatusChangedToShippedIntegrationEventHandler>();
-            services.AddTransient<OrderStatusChangedToPaidIntegrationEventHandler>();
             return services;
         }
 
@@ -280,7 +312,7 @@ namespace Webhooks.API
         {
             services.AddTransient<Func<DbConnection, IIntegrationEventLogService>>(
                 sp => (DbConnection c) => new IntegrationEventLogService(c));
-
+            return services;
             if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
             {
                 services.AddSingleton<IServiceBusPersisterConnection>(sp =>

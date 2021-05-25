@@ -1,11 +1,12 @@
-﻿namespace Ordering.API.Application.IntegrationEvents.EventHandling
+﻿using IntegrationEvents;
+
+namespace Ordering.API.Application.IntegrationEvents.EventHandling
 {
     using MediatR;
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
     using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Extensions;
     using Microsoft.Extensions.Logging;
     using Ordering.API.Application.Commands;
-    using Ordering.API.Application.IntegrationEvents.Events;
     using Serilog.Context;
     using System;
     using System.Threading.Tasks;
