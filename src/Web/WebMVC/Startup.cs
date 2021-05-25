@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Logging;
 using StackExchange.Redis;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Threading.Tasks;
 using WebMVC.Infrastructure;
 
 namespace Microsoft.eShopOnContainers.WebMVC
@@ -204,6 +205,15 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 options.Scope.Add("basket");
                 options.Scope.Add("webshoppingagg");
                 options.Scope.Add("orders.signalrhub");
+                
+                // This will allow the container to reach the discovery endpoint
+                options.MetadataAddress = "http://identity-api/.well-known/openid-configuration";
+                options.RequireHttpsMetadata = false;
+                options.Events.OnRedirectToIdentityProvider = context =>
+                {
+                    context.ProtocolMessage.IssuerAddress = $"{identityUrl}/connect/authorize";
+                    return Task.CompletedTask;
+                };
             });
 
             return services;

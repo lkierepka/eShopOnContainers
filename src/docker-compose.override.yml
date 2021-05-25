@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.9'
 
 # The default docker-compose.override file can use the "localhost" as the external name for testing web apps within the same dev machine.
 # The ESHOP_EXTERNAL_DNS_NAME_OR_IP environment variable is taken, by default, from the ".env" file defined like:
@@ -21,22 +21,50 @@ services:
       - "5433:1433"
     volumes:
       - eshop-sqldata:/var/opt/mssql
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   nosqldata:
     ports:
       - "27017:27017"
     volumes:
       - eshop-nosqldata:/data/db
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   basketdata:
     ports:
       - "6379:6379"
     volumes:
       - eshop-basketdata:/data
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
   rabbitmq:
     ports:
       - "15672:15672"
       - "5672:5672"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   identity-api:
     environment:
@@ -57,6 +85,13 @@ services:
       - OrchestratorType=${ORCHESTRATOR_TYPE}
     ports:
       - "5105:80"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   basket-api:
     environment:
@@ -78,6 +113,13 @@ services:
     ports:
       - "5103:80"
       - "9103:81"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   catalog-api:
     environment:
@@ -100,6 +142,13 @@ services:
     ports:
       - "5101:80"
       - "9101:81"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   ordering-api:
     environment:
@@ -125,6 +174,13 @@ services:
     ports:
       - "5102:80"
       - "9102:81"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   ordering-backgroundtasks:
     environment:
@@ -144,7 +200,13 @@ services:
       - Serilog__MinimumLevel__Override__Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ=Verbose
     ports:
       - "5111:80"
-
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
   payment-api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
@@ -159,6 +221,13 @@ services:
       - Serilog__MinimumLevel__Override__Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ=Verbose
     ports:
       - "5108:80"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   webhooks-api:
     environment:
@@ -172,6 +241,13 @@ services:
       - IdentityUrlExternal=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
     ports:
       - "5113:80"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   mobileshoppingapigw:
     volumes:
@@ -179,6 +255,13 @@ services:
     ports:
     - "5200:80"
     - "15200:8001"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   webshoppingapigw:
     volumes:
@@ -186,6 +269,13 @@ services:
     ports:
     - "5202:80"
     - "15202:8001"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   mobileshoppingagg:
     environment:
@@ -205,6 +295,13 @@ services:
       - IdentityUrlExternal=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
     ports:
       - "5120:80"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   webshoppingagg:
     environment:
@@ -224,6 +321,13 @@ services:
       - IdentityUrlExternal=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
     ports:
       - "5121:80"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   ordering-signalrhub:
     environment:
@@ -283,6 +387,14 @@ services:
       - SignalrHubUrl=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5202
     ports:
       - "5104:80"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
+
 
   webmvc:
     environment:
@@ -298,6 +410,14 @@ services:
       - UseLoadTest=${USE_LOADTEST:-False}
     ports:
       - "5100:80"
+    logging:
+#      driver: loki
+#      options:
+#        loki-url: http://localhost:3100/loki/api/v1/push
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
+
 
   webhooks-client:
     environment:
@@ -309,6 +429,131 @@ services:
       - SelfUrl=http://webhooks-client/
     ports:
       - "5114:80"
+        
+  ### GRAFANA
+  tempo:
+    image: grafana/tempo:latest
+    ports:
+      - "4317:4317"
+#    networks:
+#      - grafana
+    volumes:
+      - ./config/tempo-local.yaml:/etc/tempo-local.yaml
+    command: -config.file=/etc/tempo-local.yaml
+
+  #  prometheus:
+  #    image: prom/prometheus
+  #    ports:
+  #      - "9090:9090"
+  #    networks:
+  #      - grafana
+  #    volumes:
+  #    - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+  #  
+  loki:
+    image: grafana/loki:2.2.1
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+#    networks:
+#      - grafana
+#      - loki
+    volumes:
+      - ./config/loki-config.yaml:/etc/loki/local-config.yaml
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+#    networks:
+#      - grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+        
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.12.1
+    ports:
+      - "12201:12201/udp"
+    volumes:
+      - ./config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:7.12.1
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    cap_add: [ "CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID" ]
+    cap_drop: [ "ALL" ]
+    ports:
+      - 8200:8200
+#    networks:
+#      - elastic
+    command: >
+      apm-server -e
+        -E apm-server.rum.enabled=true
+        -E setup.kibana.host=kibana:5601
+        -E setup.template.settings.index.number_of_replicas=0
+        -E apm-server.kibana.enabled=true
+        -E apm-server.kibana.host=kibana:5601
+        -E output.elasticsearch.hosts=["elasticsearch:9200"]
+    healthcheck:
+      interval: 10s
+      retries: 12
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
+    environment:
+      - bootstrap.memory_lock=true
+      - cluster.name=docker-cluster
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g
+    ulimits:
+      memlock:
+        hard: -1
+        soft: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+#    networks:
+#      - elastic
+    healthcheck:
+      interval: 20s
+      retries: 10
+      test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.12.1
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - 5601:5601
+#    networks:
+#      - elastic
+    healthcheck:
+      interval: 10s
+      retries: 20
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:5601/api/status
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:7.12.1
+    command: setup
+    #    environment:
+    #      - setup.kibana.host=kibana:5601
+    #      - output.elasticsearch.hosts=["elasticsearch:9200"]
+#    networks:
+#      - elastic
+    volumes:
+      - "./config/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro"
+
 volumes:
   eshop-sqldata:
     external: false
@@ -316,4 +561,4 @@ volumes:
     external: false
   eshop-basketdata:
     external: false
-
+  esdata:

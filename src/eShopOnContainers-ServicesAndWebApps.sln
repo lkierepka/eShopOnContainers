@@ -11,6 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.env = .env
 		NuGet.config = NuGet.config
+		config\tempo-local.yaml = config\tempo-local.yaml
+		config\loki-config.yaml = config\loki-config.yaml
+		config\metricbeat.yml = config\metricbeat.yml
+		config\promtail-config.yaml = config\promtail-config.yaml
+		config\logstash.conf = config\logstash.conf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{91CF7717-08AB-4E65-B10E-0B426F01E2E8}"
