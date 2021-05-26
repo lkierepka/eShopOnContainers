@@ -482,15 +482,15 @@ services:
       - ./config/tempo-local.yaml:/etc/tempo-local.yaml
     command: -config.file=/etc/tempo-local.yaml
 
-  #  prometheus:
-  #    image: prom/prometheus
-  #    ports:
-  #      - "9090:9090"
-  #    networks:
-  #      - grafana
-  #    volumes:
-  #    - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-  #  
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - grafana
+    volumes:
+    - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+
   loki:
     image: grafana/loki:2.2.1
     ports:
