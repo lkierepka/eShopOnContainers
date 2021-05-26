@@ -15,6 +15,7 @@ using System;
 using System.IO;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 using WebSPA.Infrastructure;
 
 namespace eShopConContainers.WebSPA
@@ -48,7 +49,8 @@ namespace eShopConContainers.WebSPA
 
             services.AddHealthChecks()
                 .AddCheck("self", () => HealthCheckResult.Healthy())
-                .AddUrlGroup(new Uri(Configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" });
+                .AddUrlGroup(new Uri(Configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" })
+                .ForwardToPrometheus();
 
             services.Configure<AppSettings>(Configuration);
 
@@ -119,6 +121,7 @@ namespace eShopConContainers.WebSPA
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseRouting();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
@@ -132,6 +135,7 @@ namespace eShopConContainers.WebSPA
                     Predicate = _ => true,
                     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
                 });
+                endpoints.MapMetrics();
             });
         }
 

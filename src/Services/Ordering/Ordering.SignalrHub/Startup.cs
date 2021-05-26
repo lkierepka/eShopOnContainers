@@ -21,8 +21,10 @@ using System.Threading.Tasks;
 using EventBusMassTransit;
 using IntegrationEvents;
 using MassTransit;
+using MassTransit.PrometheusIntegration;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 
 namespace Ordering.SignalrHub
 {
@@ -160,6 +162,7 @@ namespace Ordering.SignalrHub
                     Predicate = r => r.Name.Contains("self")
                 });
                 endpoints.MapHub<NotificationsHub>("/hub/notificationhub");
+                endpoints.MapMetrics();
             });
 
             // ConfigureEventBus(app);
@@ -229,6 +232,7 @@ namespace Ordering.SignalrHub
                         hostConfigurator.Password("guest");
                     });
                     configurator.ConfigureEndpoints(context);
+                    configurator.UsePrometheusMetrics();
                 });
             });
             services.AddMassTransitHostedService();
@@ -297,6 +301,7 @@ namespace Ordering.SignalrHub
                         tags: new string[] { "rabbitmqbus" });
             }
 
+            hcBuilder.ForwardToPrometheus();
             return services;
         }
     }

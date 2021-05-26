@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using MassTransit;
+using MassTransit.PrometheusIntegration;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Prometheus;
 using RabbitMQ.Client;
 using Serilog;
 
@@ -43,6 +45,7 @@ namespace Ordering.BackgroundTasks.Extensions
                         tags: new string[] { "rabbitmqbus" });
             }
 
+            hcBuilder.ForwardToPrometheus();
             return services;
         }
 
@@ -58,6 +61,7 @@ namespace Ordering.BackgroundTasks.Extensions
                         hostConfigurator.Password("guest");
                     });
                     configurator.ConfigureEndpoints(context);
+                    configurator.UsePrometheusMetrics();
                 });
             });
             services.AddMassTransitHostedService();

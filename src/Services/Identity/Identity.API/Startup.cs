@@ -23,6 +23,7 @@ using System;
 using System.Reflection;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API
 {
@@ -75,7 +76,8 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                 .AddCheck("self", () => HealthCheckResult.Healthy())
                 .AddSqlServer(Configuration["ConnectionString"],
                     name: "IdentityDB-check",
-                    tags: new string[] { "IdentityDB" });
+                    tags: new string[] { "IdentityDB" })
+                .ForwardToPrometheus();
 
             services.AddTransient<ILoginService<ApplicationUser>, EFLoginService>();
             services.AddTransient<IRedirectService, RedirectService>();
@@ -167,6 +169,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
             // To avoid this problem, the policy of cookies shold be in Lax mode.
             app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = AspNetCore.Http.SameSiteMode.Lax });
             app.UseRouting();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
@@ -180,6 +183,7 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                 {
                     Predicate = r => r.Name.Contains("self")
                 });
+                endpoints.MapMetrics();
             });
         }
 

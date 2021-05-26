@@ -28,8 +28,10 @@ using System.Threading;
 using EventBusMassTransit;
 using IntegrationEvents;
 using MassTransit;
+using MassTransit.PrometheusIntegration;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 using Webhooks.API.Infrastructure;
 using Webhooks.API.IntegrationEvents;
 using Webhooks.API.Services;
@@ -93,6 +95,7 @@ namespace Webhooks.API
 
 
             app.UseRouting();
+            app.UseHttpMetrics();
             app.UseCors("CorsPolicy");
             ConfigureAuth(app);
 
@@ -109,6 +112,7 @@ namespace Webhooks.API
                 {
                     Predicate = r => r.Name.Contains("self")
                 });
+                endpoints.MapMetrics();
             });
 
             app.UseSwagger()
@@ -233,6 +237,7 @@ namespace Webhooks.API
                         hostConfigurator.Password("guest");
                     });
                     configurator.ConfigureEndpoints(context);
+                    configurator.UsePrometheusMetrics();
                 });
             });
             services.AddMassTransitHostedService();
@@ -293,7 +298,7 @@ namespace Webhooks.API
                     configuration["ConnectionString"],
                     name: "WebhooksApiDb-check",
                     tags: new string[] { "webhooksdb" });
-
+            hcBuilder.ForwardToPrometheus();
             return services;
         }
 

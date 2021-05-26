@@ -488,6 +488,7 @@ services:
       - "9090:9090"
     networks:
       - grafana
+      - default
     volumes:
     - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
 
@@ -590,14 +591,20 @@ services:
 
   metricbeat:
     image: docker.elastic.co/beats/metricbeat:7.12.1
-    command: setup
+#    command: setup
     #    environment:
     #      - setup.kibana.host=kibana:5601
     #      - output.elasticsearch.hosts=["elasticsearch:9200"]
+    user: root
     networks:
       - elastic
+      - default
     volumes:
       - "./config/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
+      - "/proc:/hostfs/proc:ro"
+      - "/:/hostfs:ro"
 
   collector:
     image: otel/opentelemetry-collector-contrib

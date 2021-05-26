@@ -20,6 +20,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 using WebMVC.Infrastructure;
 
 namespace Microsoft.eShopOnContainers.WebMVC
@@ -88,7 +89,7 @@ namespace Microsoft.eShopOnContainers.WebMVC
             app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = AspNetCore.Http.SameSiteMode.Lax });
 
             app.UseRouting();
-
+            app.UseHttpMetrics();
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -106,6 +107,7 @@ namespace Microsoft.eShopOnContainers.WebMVC
                     Predicate = _ => true,
                     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
                 });
+                endpoints.MapMetrics();
             });
         }
     }
@@ -125,7 +127,8 @@ namespace Microsoft.eShopOnContainers.WebMVC
         {
             services.AddHealthChecks()
                 .AddCheck("self", () => HealthCheckResult.Healthy())
-                .AddUrlGroup(new Uri(configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" });
+                .AddUrlGroup(new Uri(configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" })
+                .ForwardToPrometheus();
 
             return services;
         }

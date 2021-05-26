@@ -30,8 +30,10 @@ using System.Reflection;
 using EventBusMassTransit;
 using IntegrationEvents;
 using MassTransit;
+using MassTransit.PrometheusIntegration;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 
 namespace Microsoft.eShopOnContainers.Services.Catalog.API
 {
@@ -91,6 +93,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
              });
 
             app.UseRouting();
+            app.UseHttpMetrics();
             app.UseCors("CorsPolicy");
             app.UseEndpoints(endpoints =>
             {
@@ -120,6 +123,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                 {
                     Predicate = r => r.Name.Contains("self")
                 });
+                endpoints.MapMetrics();
             });
 
             // ConfigureEventBus(app);
@@ -205,6 +209,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                         tags: new string[] { "rabbitmqbus" });
             }
 
+            hcBuilder.ForwardToPrometheus();
             return services;
         }
 
@@ -345,6 +350,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                         hostConfigurator.Password("guest");
                     });
                     configurator.ConfigureEndpoints(context);
+                    configurator.UsePrometheusMetrics();
                 });
             });
             services.AddMassTransitHostedService();

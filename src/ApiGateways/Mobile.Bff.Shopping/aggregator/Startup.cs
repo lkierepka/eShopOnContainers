@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 
 namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
 {
@@ -52,7 +53,8 @@ namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
                 .AddUrlGroup(new Uri(Configuration["OrderingUrlHC"]), name: "orderingapi-check", tags: new string[] { "orderingapi" })
                 .AddUrlGroup(new Uri(Configuration["BasketUrlHC"]), name: "basketapi-check", tags: new string[] { "basketapi" })
                 .AddUrlGroup(new Uri(Configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" })
-                .AddUrlGroup(new Uri(Configuration["PaymentUrlHC"]), name: "paymentapi-check", tags: new string[] { "paymentapi" });
+                .AddUrlGroup(new Uri(Configuration["PaymentUrlHC"]), name: "paymentapi-check", tags: new string[] { "paymentapi" })
+                .ForwardToPrometheus();
 
             services.AddCustomMvc(Configuration)
                  .AddCustomAuthentication(Configuration)
@@ -88,6 +90,7 @@ namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
             });
 
             app.UseRouting();
+            app.UseHttpMetrics();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
             app.UseAuthorization();
@@ -104,6 +107,7 @@ namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
                 {
                     Predicate = r => r.Name.Contains("self")
                 });
+                endpoints.MapMetrics();
             });
         }
     }

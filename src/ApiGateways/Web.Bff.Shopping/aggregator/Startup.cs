@@ -24,11 +24,13 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 
 namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator
 {
     public class Startup
     {
+        private const string ServiceName = "web-aggregator";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -41,7 +43,7 @@ namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator
         {
             services.AddOpenTelemetryTracing(builder =>
                 builder
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("web-aggregator"))
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(ServiceName))
                     .AddAspNetCoreInstrumentation()
                     .AddGrpcClientInstrumentation()
                     .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
@@ -52,7 +54,8 @@ namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator
                 .AddUrlGroup(new Uri(Configuration["OrderingUrlHC"]), name: "orderingapi-check", tags: new string[] { "orderingapi" })
                 .AddUrlGroup(new Uri(Configuration["BasketUrlHC"]), name: "basketapi-check", tags: new string[] { "basketapi" })
                 .AddUrlGroup(new Uri(Configuration["IdentityUrlHC"]), name: "identityapi-check", tags: new string[] { "identityapi" })
-                .AddUrlGroup(new Uri(Configuration["PaymentUrlHC"]), name: "paymentapi-check", tags: new string[] { "paymentapi" });
+                .AddUrlGroup(new Uri(Configuration["PaymentUrlHC"]), name: "paymentapi-check", tags: new string[] { "paymentapi" })
+                .ForwardToPrometheus();
 
             services.AddCustomMvc(Configuration)
                 .AddCustomAuthentication(Configuration)
@@ -89,6 +92,7 @@ namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator
             });
 
             app.UseRouting();
+            app.UseHttpMetrics();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
             app.UseAuthorization();
@@ -106,6 +110,7 @@ namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator
                 {
                     Predicate = r => r.Name.Contains("self")
                 });
+                endpoints.MapMetrics();
             });
         }
     }

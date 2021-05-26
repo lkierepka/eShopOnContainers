@@ -18,8 +18,10 @@ using System;
 using EventBusMassTransit;
 using IntegrationEvents;
 using MassTransit;
+using MassTransit.PrometheusIntegration;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 
 namespace Payment.API
 {
@@ -111,6 +113,7 @@ namespace Payment.API
             // ConfigureEventBus(app);
 
             app.UseRouting();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHealthChecks("/hc", new HealthCheckOptions()
@@ -122,6 +125,7 @@ namespace Payment.API
                 {
                     Predicate = r => r.Name.Contains("self")
                 });
+                endpoints.MapMetrics();
             });
         }
 
@@ -144,6 +148,7 @@ namespace Payment.API
                         hostConfigurator.Password("guest");
                     });
                     configurator.ConfigureEndpoints(context);
+                    configurator.UsePrometheusMetrics();
                 });
             });
             services.AddMassTransitHostedService();
@@ -220,6 +225,7 @@ namespace Payment.API
                         tags: new string[] { "rabbitmqbus" });
             }
 
+            hcBuilder.ForwardToPrometheus();
             return services;
         }
     }

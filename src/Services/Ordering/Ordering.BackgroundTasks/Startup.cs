@@ -1,6 +1,7 @@
 ﻿using System;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Prometheus;
 
 namespace Ordering.BackgroundTasks
 {
@@ -41,6 +42,7 @@ namespace Ordering.BackgroundTasks
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
             app.UseRouting();
+            app.UseHttpMetrics();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHealthChecks("/hc", new HealthCheckOptions()
@@ -52,6 +54,7 @@ namespace Ordering.BackgroundTasks
                 {
                     Predicate = r => r.Name.Contains("self")
                 });
+                endpoints.MapMetrics();
             });
         }
     }
