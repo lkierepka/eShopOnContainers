@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Prometheus;
 using RabbitMQ.Client;
 using Serilog;
+using Serilog.Formatting.Compact;
 
 namespace Ordering.BackgroundTasks.Extensions
 {
@@ -153,7 +154,7 @@ namespace Ordering.BackgroundTasks.Extensions
                 .MinimumLevel.Verbose()
                 .Enrich.WithProperty("ApplicationContext", Program.AppName)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
+                .WriteTo.Console(new CompactJsonFormatter())
                 .WriteTo.Seq(string.IsNullOrWhiteSpace(seqServerUrl) ? "http://seq" : seqServerUrl)
                 .WriteTo.Http(string.IsNullOrWhiteSpace(logstashUrl) ? "http://logstash:8080" : logstashUrl)
                 .ReadFrom.Configuration(configuration)

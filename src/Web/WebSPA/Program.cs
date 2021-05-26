@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using System.IO;
+using Serilog.Formatting.Compact;
 
 BuildWebHost(args).Run();
 
@@ -28,6 +29,6 @@ IWebHost BuildWebHost(string[] args) =>
             config
                 .MinimumLevel.Information()
                 .Enrich.FromLogContext()
-                .WriteTo.Console();
+                .WriteTo.Console(new CompactJsonFormatter());
         })
         .Build();

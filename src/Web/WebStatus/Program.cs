@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Serilog.Formatting.Compact;
 using WebStatus;
 
 var configuration = GetConfiguration();
@@ -52,9 +53,8 @@ Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
         .MinimumLevel.Verbose()
         .Enrich.WithProperty("ApplicationContext", Program.AppName)
         .Enrich.FromLogContext()
-        .WriteTo.Console()
+        .WriteTo.Console(new CompactJsonFormatter())
         .WriteTo.Seq(string.IsNullOrWhiteSpace(seqServerUrl) ? "http://seq" : seqServerUrl)
-        .WriteTo.Http(string.IsNullOrWhiteSpace(logstashUrl) ? "http://logstash:8080" : logstashUrl)
         .ReadFrom.Configuration(configuration)
         .CreateLogger();
 }

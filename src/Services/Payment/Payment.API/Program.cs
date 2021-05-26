@@ -5,6 +5,7 @@ using Payment.API;
 using Serilog;
 using System;
 using System.IO;
+using Serilog.Formatting.Compact;
 
 
 var configuration = GetConfiguration();
@@ -49,9 +50,8 @@ Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
         .MinimumLevel.Verbose()
         .Enrich.WithProperty("ApplicationContext", Program.AppName)
         .Enrich.FromLogContext()
-        .WriteTo.Console()
+        .WriteTo.Console(new CompactJsonFormatter())
         .WriteTo.Seq(string.IsNullOrWhiteSpace(seqServerUrl) ? "http://seq" : seqServerUrl)
-        .WriteTo.Http(string.IsNullOrWhiteSpace(logstashUrl) ? "http://logstash:8080" : logstashUrl)
         .ReadFrom.Configuration(configuration)
         .CreateLogger();
 }

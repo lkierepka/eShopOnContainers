@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using System;
 using System.IO;
+using Serilog.Formatting.Compact;
 
 string Namespace = typeof(Startup).Namespace;
 string AppName = Namespace.Substring(Namespace.LastIndexOf('.', Namespace.LastIndexOf('.') - 1) + 1);
@@ -74,7 +75,7 @@ Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
         .MinimumLevel.Verbose()
         .Enrich.WithProperty("ApplicationContext", AppName)
         .Enrich.FromLogContext()
-        .WriteTo.Console()
+        .WriteTo.Console(new CompactJsonFormatter())
         .WriteTo.Seq(string.IsNullOrWhiteSpace(seqServerUrl) ? "http://seq" : seqServerUrl)
         .WriteTo.Http(string.IsNullOrWhiteSpace(logstashUrl) ? "http://localhost:8080" : logstashUrl)
         .ReadFrom.Configuration(configuration)

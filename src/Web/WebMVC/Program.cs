@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using System;
 using System.IO;
+using Serilog.Formatting.Compact;
 
 var configuration = GetConfiguration();
 
@@ -46,7 +47,7 @@ Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
         .ReadFrom.Configuration(configuration)
         .Enrich.WithProperty("ApplicationContext", Program.AppName)
         .Enrich.FromLogContext()
-        .WriteTo.Console();
+        .WriteTo.Console(new CompactJsonFormatter());
     if (!string.IsNullOrWhiteSpace(seqServerUrl))
     {
         cfg.WriteTo.Seq(seqServerUrl);
