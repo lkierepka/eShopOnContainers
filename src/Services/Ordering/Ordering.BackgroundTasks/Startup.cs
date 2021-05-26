@@ -1,4 +1,8 @@
-﻿namespace Ordering.BackgroundTasks
+﻿using System;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+namespace Ordering.BackgroundTasks
 {
     using HealthChecks.UI.Client;
     using Microsoft.AspNetCore.Builder;
@@ -19,7 +23,13 @@
         public IConfiguration Configuration { get; }
 
         public virtual void ConfigureServices(IServiceCollection services)
-        {
+        {            
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ordering-api"))
+                    .AddMassTransitInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             services.AddCustomHealthCheck(this.Configuration)
                 .Configure<BackgroundTaskSettings>(this.Configuration)
                 .AddOptions()

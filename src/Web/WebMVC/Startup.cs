@@ -40,6 +40,7 @@ namespace Microsoft.eShopOnContainers.WebMVC
                 builder
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("web-mvc"))
                     .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
                     .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
             );
             services.AddControllersWithViews()

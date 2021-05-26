@@ -34,6 +34,7 @@ using System.IO;
 using EventBusMassTransit;
 using IntegrationEvents;
 using MassTransit;
+using Microsoft.Extensions.Caching.Distributed;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -52,12 +53,14 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
         public virtual IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddOpenTelemetryTracing(builder =>
+            {
                 builder
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("basket-api"))
                     .AddAspNetCoreInstrumentation()
                     .AddMassTransitInstrumentation()
-                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
-            );
+                    .Configure((provider, providerBuilder) => providerBuilder.AddRedisInstrumentation(provider.GetRequiredService<IConnectionMultiplexer>()))
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"));
+            });
             services.AddGrpc(options => { options.EnableDetailedErrors = true; });
 
             RegisterAppInsights(services);

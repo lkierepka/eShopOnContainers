@@ -43,6 +43,7 @@ namespace Microsoft.eShopOnContainers.Mobile.Shopping.HttpAggregator
                 builder
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("mobile-aggregator"))
                     .AddAspNetCoreInstrumentation()
+                    .AddGrpcClientInstrumentation()
                     .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
             );
             services.AddHealthChecks()

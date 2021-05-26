@@ -21,6 +21,8 @@ using System.Threading.Tasks;
 using EventBusMassTransit;
 using IntegrationEvents;
 using MassTransit;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Ordering.SignalrHub
 {
@@ -37,6 +39,12 @@ namespace Ordering.SignalrHub
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder =>
+                builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ordering-api"))
+                    .AddMassTransitInstrumentation()
+                    .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
+            );
             services
                 .AddCustomHealthCheck(Configuration)
                 .AddCors(options =>

@@ -58,6 +58,7 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.API
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("ordering-api"))
                     .AddAspNetCoreInstrumentation()
                     .AddMassTransitInstrumentation()
+                    .AddSqlClientInstrumentation()
                     .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
             );
             services
