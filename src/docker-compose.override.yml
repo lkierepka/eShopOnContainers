@@ -17,6 +17,10 @@ x-logging: &logging
         - json:
             expressions:
               TraceId:
+              level: @l
+        - labels:
+            TraceId:
+            level:
 x-logging-stack: &logging-stack
   tempo:
     image: grafana/tempo:latest
@@ -45,17 +49,6 @@ x-logging-stack: &logging-stack
       - grafana
     volumes:
       - ./config/loki-config.yaml:/etc/loki/local-config.yaml
-
-  promtail:
-    image: grafana/promtail:2.2.1
-    command: -config.file=/etc/promtail/config.yml
-    ports:
-      - "9080:9080"
-      - "3500:3500"
-    networks:
-      - grafana
-    volumes:
-      - ./config/promtail-config.yaml:/etc/promtail/config.yml
 
   grafana:
     image: grafana/grafana:latest
@@ -192,11 +185,11 @@ x-logging-stack: &logging-stack
 #      - elastic
 
 services:
-  seq:
-    environment:
-      - ACCEPT_EULA=Y
-    ports:
-      - "5340:80"
+#  seq:
+#    environment:
+#      - ACCEPT_EULA=Y
+#    ports:
+#      - "5340:80"
 
   sqldata:
     environment:
