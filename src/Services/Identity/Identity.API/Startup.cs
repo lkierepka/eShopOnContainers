@@ -45,7 +45,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                     .AddAspNetCoreInstrumentation()
                     .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
             );
-            RegisterAppInsights(services);
 
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -185,12 +184,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                 });
                 endpoints.MapMetrics();
             });
-        }
-
-        private void RegisterAppInsights(IServiceCollection services)
-        {
-            services.AddApplicationInsightsTelemetry(Configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
         }
     }
 }

@@ -68,7 +68,6 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.API
                     options.EnableDetailedErrors = true;
                 })
                 .Services
-                .AddApplicationInsights(Configuration)
                 .AddCustomMvc()
                 .AddHealthChecks(Configuration)
                 .AddCustomDbContext(Configuration)
@@ -171,14 +170,6 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.API
 
     static class CustomExtensionsMethods
     {
-        public static IServiceCollection AddApplicationInsights(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddApplicationInsightsTelemetry(configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
-
-            return services;
-        }
-
         public static IServiceCollection AddCustomMvc(this IServiceCollection services)
         {
             // Add framework services.

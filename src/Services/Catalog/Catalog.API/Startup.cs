@@ -55,8 +55,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
                     .AddMassTransitInstrumentation()
                     .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
             );
-            services.AddAppInsight(Configuration)
-                .AddGrpc().Services
+            services.AddGrpc().Services
                 .AddCustomMVC(Configuration)
                 .AddCustomDbContext(Configuration)
                 .AddCustomOptions(Configuration)
@@ -139,14 +138,6 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
 
     public static class CustomExtensionMethods
     {
-        public static IServiceCollection AddAppInsight(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddApplicationInsightsTelemetry(configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
-
-            return services;
-        }
-
         public static IServiceCollection AddCustomMVC(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddControllers(options =>

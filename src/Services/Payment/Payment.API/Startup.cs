@@ -47,8 +47,6 @@ namespace Payment.API
             services.AddCustomHealthCheck(Configuration);
             services.Configure<PaymentSettings>(Configuration);
 
-            RegisterAppInsights(services);
-
             if (Configuration.GetValue<bool>("AzureServiceBusEnabled"))
             {
                 services.AddSingleton<IServiceBusPersisterConnection>(sp =>
@@ -127,12 +125,6 @@ namespace Payment.API
                 });
                 endpoints.MapMetrics();
             });
-        }
-
-        private void RegisterAppInsights(IServiceCollection services)
-        {
-            services.AddApplicationInsightsTelemetry(Configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
         }
 
         private void RegisterEventBus(IServiceCollection services)

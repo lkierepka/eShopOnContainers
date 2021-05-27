@@ -64,8 +64,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             });
             services.AddGrpc(options => { options.EnableDetailedErrors = true; });
 
-            RegisterAppInsights(services);
-
             services.AddControllers(options =>
                 {
                     options.Filters.Add(typeof(HttpGlobalExceptionFilter));
@@ -215,12 +213,6 @@ namespace Microsoft.eShopOnContainers.Services.Basket.API
             });
 
             // ConfigureEventBus(app);
-        }
-
-        private void RegisterAppInsights(IServiceCollection services)
-        {
-            services.AddApplicationInsightsTelemetry(Configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
         }
 
         private void ConfigureAuthService(IServiceCollection services)

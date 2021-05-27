@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore;
+﻿using Common;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using Webhooks.API;
 using Webhooks.API.Infrastructure;
 
@@ -17,10 +18,4 @@ IWebHostBuilder CreateWebHostBuilder(string[] args) =>
                 {
                     config.AddEnvironmentVariables();
                 })
-                .ConfigureLogging((hostingContext, builder) =>
-                {
-                    builder.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
-                    builder.AddConsole();
-                    builder.AddDebug();
-                    builder.AddAzureWebAppDiagnostics();
-                });
+                .UseSerilog((context, configuration) => configuration.ConfigureSerilogLogger("webhooks-api", context.Configuration));

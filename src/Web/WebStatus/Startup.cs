@@ -31,7 +31,6 @@ namespace WebStatus
                     .AddAspNetCoreInstrumentation()
                     .AddOtlpExporter(options => options.Endpoint = new Uri("http://collector:4317"))
             );
-            RegisterAppInsights(services);
 
             services.AddControllers();
 
@@ -85,12 +84,6 @@ namespace WebStatus
                     Predicate = r => r.Name.Contains("self")
                 });
             });
-        }
-
-        private void RegisterAppInsights(IServiceCollection services)
-        {
-            services.AddApplicationInsightsTelemetry(Configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
         }
     }
 }

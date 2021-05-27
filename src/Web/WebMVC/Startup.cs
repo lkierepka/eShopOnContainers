@@ -46,7 +46,6 @@ namespace Microsoft.eShopOnContainers.WebMVC
             );
             services.AddControllersWithViews()
                 .Services
-                .AddAppInsight(Configuration)
                 .AddHealthChecks(Configuration)
                 .AddCustomMvc(Configuration)
                 .AddDevspaces()
@@ -114,15 +113,6 @@ namespace Microsoft.eShopOnContainers.WebMVC
 
     static class ServiceCollectionExtensions
     {
-
-        public static IServiceCollection AddAppInsight(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddApplicationInsightsTelemetry(configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
-
-            return services;
-        }
-
         public static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHealthChecks()

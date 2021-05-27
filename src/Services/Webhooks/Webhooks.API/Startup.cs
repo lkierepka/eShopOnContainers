@@ -59,7 +59,6 @@ namespace Webhooks.API
             );
             
             services
-                .AddAppInsight(Configuration)
                 .AddCustomRouting(Configuration)
                 .AddCustomDbContext(Configuration)
                 .AddSwagger(Configuration)
@@ -82,8 +81,6 @@ namespace Webhooks.API
 
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddApplicationInsights(app.ApplicationServices, LogLevel.Trace);
-
             var pathBase = Configuration["PATH_BASE"];
 
             if (!string.IsNullOrEmpty(pathBase))
@@ -143,14 +140,6 @@ namespace Webhooks.API
 
     static class CustomExtensionMethods
     {
-        public static IServiceCollection AddAppInsight(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddApplicationInsightsTelemetry(configuration);
-            services.AddApplicationInsightsKubernetesEnricher();
-
-            return services;
-        }
-
         public static IServiceCollection AddCustomRouting(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddControllers(options =>
