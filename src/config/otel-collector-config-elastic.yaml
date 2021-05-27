@@ -12,40 +12,38 @@ exporters:
 #      label1: value1
   logging:
 
-  zipkin:
-    endpoint: "http://zipkin:9411/api/v2/spans"
-    format: proto
-
-  jaeger:
-    endpoint: jaeger:14250
-    insecure: true
+#  zipkin:
+#    endpoint: "http://zipkin:9411/api/v2/spans"
+#    format: proto
+#
+#  jaeger:
+#    endpoint: jaeger:14250
+#    insecure: true
 
   elastic:
     apm_server_url: 'http://apm-server:8200'
     insecure: true
 
-  otlp:
-    endpoint: 'tempo:4317'
-    insecure: true
+#  otlp:
+#    endpoint: 'tempo:4317'
+#    insecure: true
 
 processors:
   batch:
 
 extensions:
   health_check:
-  pprof:
-    endpoint: :1888
   zpages:
     endpoint: :55679
 
 service:
-  extensions: [pprof, zpages, health_check]
+  extensions: [zpages, health_check]
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, zipkin, jaeger, elastic, otlp]
+      exporters: [elastic]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, elastic]
+      exporters: [logging]

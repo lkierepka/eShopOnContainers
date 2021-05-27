@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore;
+﻿using Common;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator;
 using Serilog;
-using Serilog.Formatting.Compact;
 
 BuildWebHost(args).Run();
 
@@ -22,9 +22,6 @@ IWebHost BuildWebHost(string[] args) =>
         .UseStartup<Startup>()
         .UseSerilog((builderContext, config) =>
         {
-            config
-                .MinimumLevel.Information()
-                .Enrich.FromLogContext()
-                .WriteTo.Console(new CompactJsonFormatter());
+            config.ConfigureSerilogLogger("web-aggregator", builderContext.Configuration);
         })
         .Build();

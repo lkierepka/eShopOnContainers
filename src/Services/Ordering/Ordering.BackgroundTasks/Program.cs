@@ -2,9 +2,9 @@ using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Ordering.BackgroundTasks.Extensions;
 using Serilog;
 using System.IO;
+using Common;
 
 namespace Ordering.BackgroundTasks
 {
@@ -29,7 +29,10 @@ namespace Ordering.BackgroundTasks
                     builder.AddEnvironmentVariables();
                     builder.AddCommandLine(args);
                 })
-                .ConfigureLogging((host, builder) => builder.UseSerilog(host.Configuration).AddSerilog())
+                .UseSerilog((builderContext, config) =>
+                {
+                    config.ConfigureSerilogLogger(AppName, builderContext.Configuration);
+                })
                 .Build();
     }
 }

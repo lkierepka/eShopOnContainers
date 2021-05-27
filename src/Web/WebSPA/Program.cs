@@ -5,18 +5,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using System.IO;
-using Serilog.Formatting.Compact;
+using Common;
 
 BuildWebHost(args).Run();
 
 IWebHost BuildWebHost(string[] args) =>
     WebHost.CreateDefaultBuilder(args)
-     .UseStartup<Startup>()
+        .UseStartup<Startup>()
         .UseContentRoot(Directory.GetCurrentDirectory())
-        .ConfigureAppConfiguration((builderContext, config) =>
-        {
-            config.AddEnvironmentVariables();
-        })
+        .ConfigureAppConfiguration((builderContext, config) => { config.AddEnvironmentVariables(); })
         .ConfigureLogging((hostingContext, builder) =>
         {
             builder.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
@@ -26,9 +23,6 @@ IWebHost BuildWebHost(string[] args) =>
         })
         .UseSerilog((builderContext, config) =>
         {
-            config
-                .MinimumLevel.Information()
-                .Enrich.FromLogContext()
-                .WriteTo.Console(new CompactJsonFormatter());
+            config.ConfigureSerilogLogger("web-spa", builderContext.Configuration);
         })
         .Build();

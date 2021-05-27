@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Serilog.Formatting.Compact;
+using Common;
 using WebStatus;
 
 var configuration = GetConfiguration();
 
-Log.Logger = CreateSerilogLogger(configuration);
+Log.Logger = CommonConfigurationExtensions.CreateSerilogLogger(Program.AppName, configuration);
 
 try
 {
@@ -44,20 +44,6 @@ IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>
         .UseContentRoot(Directory.GetCurrentDirectory())
         .UseSerilog()
         .Build();
-
-Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
-{
-    var seqServerUrl = configuration["Serilog:SeqServerUrl"];
-    var logstashUrl = configuration["Serilog:LogstashgUrl"];
-    return new LoggerConfiguration()
-        .MinimumLevel.Verbose()
-        .Enrich.WithProperty("ApplicationContext", Program.AppName)
-        .Enrich.FromLogContext()
-        .WriteTo.Console(new CompactJsonFormatter())
-        .WriteTo.Seq(string.IsNullOrWhiteSpace(seqServerUrl) ? "http://seq" : seqServerUrl)
-        .ReadFrom.Configuration(configuration)
-        .CreateLogger();
-}
 
 IConfiguration GetConfiguration()
 {

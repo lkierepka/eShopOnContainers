@@ -35,7 +35,6 @@ using EventBusMassTransit;
 using IntegrationEvents;
 using MassTransit;
 using MassTransit.PrometheusIntegration;
-using Microsoft.Extensions.Caching.Distributed;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Prometheus;

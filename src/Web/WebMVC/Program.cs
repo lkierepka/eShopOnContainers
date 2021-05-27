@@ -5,11 +5,11 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using System;
 using System.IO;
-using Serilog.Formatting.Compact;
+using Common;
 
 var configuration = GetConfiguration();
 
-Log.Logger = CreateSerilogLogger(configuration);
+Log.Logger = CommonConfigurationExtensions.CreateSerilogLogger(Program.AppName, configuration);
 
 try
 {
@@ -38,26 +38,6 @@ IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>
         .UseStartup<Startup>()
         .UseSerilog()
         .Build();
-
-Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
-{
-    var seqServerUrl = configuration["Serilog:SeqServerUrl"];
-    var logstashUrl = configuration["Serilog:LogstashgUrl"];
-    var cfg = new LoggerConfiguration()
-        .ReadFrom.Configuration(configuration)
-        .Enrich.WithProperty("ApplicationContext", Program.AppName)
-        .Enrich.FromLogContext()
-        .WriteTo.Console(new CompactJsonFormatter());
-    if (!string.IsNullOrWhiteSpace(seqServerUrl))
-    {
-        cfg.WriteTo.Seq(seqServerUrl);
-    }
-    if (!string.IsNullOrWhiteSpace(logstashUrl))
-    {
-        cfg.WriteTo.Http(logstashUrl);
-    }
-    return cfg.CreateLogger();
-}
 
 IConfiguration GetConfiguration()
 {
