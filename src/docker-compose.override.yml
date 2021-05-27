@@ -17,10 +17,8 @@ x-logging: &logging
         - json:
             expressions:
               TraceId:
-              level: @l
         - labels:
             TraceId:
-            level:
 x-logging-stack: &logging-stack
   tempo:
     image: grafana/tempo:latest
@@ -39,7 +37,41 @@ x-logging-stack: &logging-stack
       - default
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    command: 
+      - '-docker_only'
+      - '-housekeeping_interval=10s'
+      - '-max_housekeeping_interval=35s'
+      - '-global_housekeeping_interval=30s'
+      - '-disable_metrics=percpu,process,sched,tcp,udp,diskIO,disk'
+      - '-allow_dynamic_housekeeping=true'
+      - '-storage_duration=1m0s'
+      - '-store_container_labels=false'
+      - '-whitelisted_container_labels=com.docker.compose.service,com.docker.compose.project'
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+  node-exporter:
+    image: prom/node-exporter
+    volumes:
+      - /:/host:ro,rslave
+    pid: host
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.disable-defaults'
+      - '--collector.meminfo'
+      - '--collector.cpu'
+    ports:
+      - 9100:9100
   loki:
     image: grafana/loki:2.2.1
     ports:

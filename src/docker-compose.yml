@@ -12,10 +12,10 @@ services:
     image: mongo
 
   basketdata:
-    image: redis:alpine
+    image: redis:buster
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3-management
 
   identity-api:
     image: ${REGISTRY:-eshop}/identity.api:${PLATFORM:-linux}-${TAG:-latest}
